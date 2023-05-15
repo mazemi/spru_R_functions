@@ -14,13 +14,14 @@ library(progress)
 #' @param: raw_df, data frame
 #' @param: clean_df, data frame
 #' @param: unique_ids, vector with two string, optional
+#' @param: columns, vector of column names for comparing, optional
 #' @return: logs_df, data frame
 #' 
 #' If both data frames has "_uuid" columns, the third parameter is not required.
 #' Otherwise, the function expects "unique_ids" vector ie. c("id1","id2")
 #' -----------------------------------------------------------------------------
 
-compare_data <- function(raw_df,clean_df, unique_ids){
+compare_data <- function(raw_df,clean_df, unique_ids, columns = NULL){
   
   if(missing(raw_df) | missing(clean_df)) {
     message('Please set both data sets.')
@@ -52,9 +53,13 @@ compare_data <- function(raw_df,clean_df, unique_ids){
   colnames(raw_df)[colnames(raw_df) == colnames(raw_df[unique_raw_id])] = "uuid_raw"
   colnames(clean_df)[colnames(clean_df) == colnames(clean_df[unique_clean_id])] = "uuid"
   
-  # looking for identical columns in raw and clean data sets
-  check_columns <- intersect(colnames(raw_df),colnames(clean_df))
-  
+  if(missing(columns)) {
+    # looking for identical columns in raw and clean data sets
+    check_columns <- intersect(colnames(raw_df),colnames(clean_df))
+  }else{
+    check_columns <- columns
+  }
+
   if (length(check_columns) == 0){
     cat('There is no identical columns in the provided data sets.')
     opt <- options(show.error.messages=FALSE)
