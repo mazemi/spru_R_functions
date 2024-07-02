@@ -17,9 +17,9 @@ library(openxlsx)
 
 # Winter months: Oct, Nov, Dec, Jan, Feb, Mar
 winterization <- FALSE
-JMMI_round <- "R47"
+JMMI_round <- "R48"
 
-df_all <- read.csv("./input/AFG2002_JMMI_R47_May24_recoded.csv")
+df_all <- read.csv("./input/AFG2002_JMMI_R48_Jun24_recoded.csv")
 district_all <- read.xlsx("./input/AFG_Districts.xlsx")
 
 # districts with less than four records:
@@ -725,7 +725,9 @@ conditionalFormatting(mfs_file,
   rows = 1:nrow(mfs) + 1, rule = " < 5", type = "expression", style = low_value_style
 )
 
-setColWidths(mfs_file, sheet = 1, cols = 1:9, widths = 18)
+setColWidths(mfs_file, sheet = 1, cols = 1, widths = 12)
+setColWidths(mfs_file, sheet = 1, cols = 2:9, widths = 18)
+setColWidths(mfs_file, sheet = 1, cols = 8, widths = 12)
 setColWidths(mfs_file, sheet = 2, cols = 1:ncol(availability_info_full), widths = "auto")
 setColWidths(mfs_file, sheet = 3, cols = 1:ncol(accessibility_info), widths = "auto")
 setColWidths(mfs_file, sheet = 4, cols = 1:ncol(resilience_info), widths = "auto")
