@@ -1,4 +1,6 @@
+# The aim of this script is to append the latest JMMI indicators to the longitudinal data
 # Load necessary libraries
+source("./R/formatter.R")
 library(openxlsx)
 library(dplyr)
 library(tidyr)
@@ -11,12 +13,15 @@ current_data_path <- "./input/current_data/datamerge_JMMI_R48_Jun24.csv"
 region_province_path <- "./input/region_province.csv"
 indicators_list_path <- "./input/indicators_list.xlsx"
 
+questions = read.xlsx("./input/JMMI_Tool_combinded_v3_old_codes.xlsx", sheet = "survey")
+choices = read.xlsx("./input/JMMI_Tool_combinded_v3_old_codes.xlsx", sheet = "choices")
+
 # Read data files
 db <- read.csv(old_data_path)
 dm <- read.csv(current_data_path)
 region_province <- read.csv(region_province_path, fileEncoding = "UTF-8-BOM")
 
-# Extract the filename
+# Extract the file name
 datamerge_name <- basename(current_data_path)
 
 # Function to extract the last JMMI round
@@ -73,7 +78,7 @@ dm <- dm %>%
     )
   ) %>% 
   ungroup() %>% 
-  select(round, date, level, afg_region, afg_prov, samplesize, everything(), -region_name)
+  select(round, date, level, afg_region, afg_prov, samplesize, everything(), -c(region_name, disaggregation))
 
 # Rename a specific column
 dm <- dm %>% rename(difficulty_roads..value..yes_winter_seasonality = difficulty_roads..value..yes_seasonality)
@@ -83,25 +88,6 @@ dm$koko <- 2003
 
 # Combine columns from both dataframes
 all_columns <- union(names(db), names(dm))
-
-# # Prepare for column reordering
-# db_cols <- colnames(db)
-# db_vec <- sub("..value...*", "..value..", db_cols)
-# db_vec <- unique(db_vec)
-# dd <- data.frame(a = db_vec, b = 1:length(db_vec))
-# df <- data.frame(col1 = all_columns) %>%
-#   mutate(root.col = sub("..value...*", "..value..", col1)) %>%
-#   left_join(dd, by = c("root.col" = "a"))
-# 
-# # Assign order value to missing columns
-# df$b[is.na(df$b)] <- length(db_vec) + 1
-# 
-# # Order the columns
-# df <- df %>% arrange(b)
-# df_order <- df$col1  
-# 
-# 
-# all_columns <- union(names(db), names(dm))
 
 # Prepare for column reordering
 db_vec <- sub("..value...*", "..value..", colnames(db))
@@ -136,5 +122,13 @@ df_combined[is.na(df_combined)] <- NA
 
 # Reorder columns and write to Excel
 df_combined <- df_combined %>% select(all_of(ref_col_full$col.name))
-write.xlsx(df_combined, "dd3.xlsx")
+write.csv(df_combined, "./new_output/csv/longitudinal_indicators.csv", row.names = FALSE)
+write.xlsx(df_combined, "./new_output/xlsx/longitudinal_indicators.xlsx", row.names = FALSE, showNA=FALSE)
+
+# reload the data from csv (for some reason if passing directly the df this generates issues)
+df_indicators = read.csv("./new_output/csv/longitudinal_indicators.csv", na.strings='NA')
+
+df_indicators = format_indicator_data(df_indicators, questions, choices)
+
+split_by_level(df_indicators, "./new_output/formatted/longitudinal_indicators.xlsx", "indicators")
 
