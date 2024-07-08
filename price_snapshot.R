@@ -7,10 +7,10 @@ library(stringr)
 library(lubridate)
 
 # extract national level prices from longitudinal prices
-price_df = read.csv("output/csv/longitudinal_prices - Copy.csv", na.strings='NA') %>% filter(level == "National")
+price_df = read.csv("output/csv/longitudinal_prices.csv", na.strings='NA') %>% filter(level == "National")
 
-price_df$date <- as.Date(price_df$date ,format="%m/%d/%Y")
-# price_df$date <- as.Date(price_df$date ,format="%Y-%m-%d")
+# price_df$date <- as.Date(price_df$date ,format="%m/%d/%Y")
+price_df$date <- as.Date(price_df$date ,format="%Y-%m-%d")
 
 last_month <- max(price_df$date)
 previous_month <- floor_date(last_month - months(1), "month")
@@ -33,7 +33,8 @@ price_df <- dates_df %>% inner_join(price_df)
 item_list <- c(
   "wheat_local",
   "wheat_imported",
-  "local_rice",
+  "wheat",
+  "_rice",
   "veg_oil",
   "pulses_merged_price_final",
   "salt",
@@ -131,7 +132,7 @@ calculate_change <- function( col){
   if(str_sub(col, start= -3) == "USD"){
      tryCatch(
         {
-          result = round((merge_price_final$last_USD - merge_price_final[[col]]) / merge_price_final[[col]],2)
+          result = round((merge_price_final$last_USD - merge_price_final[[col]]) / merge_price_final[[col]],2) * 100
           return(result)
         },
 
@@ -142,7 +143,7 @@ calculate_change <- function( col){
   }else{
     tryCatch(
       {
-        result = round((merge_price_final$last_AFN - merge_price_final[[col]]) / merge_price_final[[col]],2)
+        result = round((merge_price_final$last_AFN - merge_price_final[[col]]) / merge_price_final[[col]],2) * 100
         return(result)
       },
       
@@ -162,7 +163,12 @@ merge_price_final <- merge_price_final %>% mutate(
 
 merge_price_final <- merge_price_final %>% select(id, item, last_USD, last_AFN, starts_with("monthly"), starts_with("six_month_change"))
 
+# remove "_" from item names:
+merge_price_final$item <- gsub("_", " ", merge_price_final$item)
 
+merge_price_final$item <- str_to_title(merge_price_final$item)
 
-
+column_name <- c("", "Item", "Price (USD)", "Price (AFN)", "Monthly change AFN", "Monthly change USD", "6 Month change AFN", "6 Month change USD")
+colnames(merge_price_final) <- column_name
+write.csv(merge_price_final, "./output/items_price_changes_overview.csv", row.names = FALSE)
 
