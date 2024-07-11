@@ -1,10 +1,10 @@
-# this function compare two dataframes and generates a log dataframe.
+# this function compare two dataframes and return a log dataframe.
 # The aim is comparing KOBO raw data and final clean data.
 # Both dataframe should have "_uuid" columns.
 
 library(dplyr)
 
-logger <- function(df1, df2, additional_columns) {
+logger <- function(df1, df2, additional_columns = NULL) {
 
   df1$`_uuid` <- as.character(df1$`_uuid`)
   df2$`_uuid` <- as.character(df2$`_uuid`)
@@ -52,7 +52,7 @@ logger <- function(df1, df2, additional_columns) {
   }
 
   log_df <- log_df %>% rename(uuid = X_uuid)
-  write.csv(log_df, "log.csv", row.names = FALSE)
+  # write.csv(log_df, "log.csv", row.names = FALSE)
   return(log_df)
 }
 
