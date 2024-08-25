@@ -8,101 +8,13 @@ library(purrr)
 
 source("./R/formatter.R")
 
-old_data_path <- "./input/old_data/longitudinal_indicators.csv"
+old_indicators_data_path <- "./input/old_data/longitudinal_indicators.csv"
 region_province_path <- "./misc_data/region_province.csv"
 indicators_list_path <- "./misc_data/indicators_list.xlsx"
 output_csv_path <- "./output/csv/longitudinal_indicators.csv"
 output_xlsx_path <- "./output/xlsx/longitudinal_indicators.xlsx"
 formatted_output_path <- "./output/formatted/longitudinal_indicators.xlsx"
 
-# core function
-process_jmmi_indicators <- function(current_datamerge_path, tool_path) {
-  questions = read.xlsx(tool_path, sheet = "survey")
-  choices = read.xlsx(tool_path, sheet = "choices")
-  db <- read.csv(old_data_path)
-  dm <- read.csv(current_datamerge_path)
-  # rename some of column names
-  dm <- correct_header(dm)
-  
-  region_province <- read.csv(region_province_path, fileEncoding = "UTF-8-BOM")
-  
-  datamerge_name <- basename(current_datamerge_path)
-  last_date <- extract_date(datamerge_name) 
-  last_round <- extract_number(datamerge_name)  
-  
-  indicator_list <- read.xlsx(indicators_list_path, sheet = "required_indicatores")
-  indicator_vec <- paste0(indicator_list$var, "..value..")
-  pattern <- paste0("^(", paste(indicator_vec, collapse = "|"), ")")
-  
-  dm <- dm %>% 
-    filter(level != "afg_dist") %>% 
-    select(level, disaggregation, samplesize, matches(pattern))
-  
-  dm <- merge(dm, region_province, by.x = "disaggregation", by.y = "province_name", all.x = TRUE)
-  
-  cat("merging current data with old data ...", "\n")
-  dm <- dm %>% 
-    mutate(
-      round = last_round,
-      date = last_date,
-      level = case_when(
-        level == "No_disagregation" ~ "National",
-        level == "afg_region" ~ "Region",
-        level == "afg_prov" ~ "Province",
-        TRUE ~ level
-      ),
-      afg_region = case_when(
-        level == "Region" ~ disaggregation,
-        level == "Province" ~ region_name,
-        TRUE ~ NA_character_
-      ),
-      afg_prov = case_when(
-        level == "Province" ~ disaggregation,
-        TRUE ~ NA_character_
-      )
-    ) %>% 
-    ungroup() %>% 
-    select(round, date, level, afg_region, afg_prov, samplesize, everything(), -c(region_name, disaggregation))
-  
-  all_columns <- union(names(db), names(dm))
-  
-  db_vec <- sub("..value...*", "..value..", colnames(db))
-  db_vec <- unique(db_vec)
-  ref_col <- data.frame(root.col = db_vec, col.order = 1:length(db_vec))
-  
-  ref_col_full <- data.frame(col.name = all_columns) %>%
-    mutate(root.col = sub("..value...*", "..value..", col.name)) %>%
-    left_join(ref_col, by = c("root.col" = "root.col"))
-  
-  ref_col_full$col.order[is.na(ref_col_full$col.order)] <- length(db_vec) + 1
-  ref_col_full <- ref_col_full %>% arrange(col.order)
-  
-  db_filled <- db %>% mutate(across(everything(), ~ .x))
-  dm_filled <- dm %>% mutate(across(everything(), ~ .x))
-  
-  for (col in all_columns) {
-    if (!col %in% names(db_filled)) {
-      db_filled[[col]] <- NA
-    }
-    if (!col %in% names(dm_filled)) {
-      dm_filled[[col]] <- NA
-    }
-  }
-  
-  df_combined <- bind_rows(db_filled, dm_filled)
-  df_combined[is.na(df_combined)] <- NA
-  
-  df_combined <- df_combined %>% select(all_of(ref_col_full$col.name))
-  
-  write.csv(df_combined, output_csv_path, row.names = FALSE)
-  write.xlsx(df_combined, output_xlsx_path, row.names = FALSE, showNA = FALSE)
-  
-  df_indicators = read.csv(output_csv_path, na.strings = 'NA')
-  df_indicators = format_indicator_data(df_indicators, questions, choices)
-  cat("generating final longitudinal data ...", "\n")
-  split_by_level(df_indicators, formatted_output_path, "indicators")
-  cat("longitudinal indicators has been generated.", "\n")
-}
 
 # get JMMI round
 extract_number <- function(filename) {
@@ -311,4 +223,97 @@ correct_header <- function(df) {
   df_renamed <- df %>% rename_with(~ rename_vector[.x], .cols = names(rename_vector))
   
   return(df_renamed)
+}
+
+
+# core function
+process_jmmi_indicators <- function(current_datamerge_path, tool_path) {
+  questions = read.xlsx(tool_path, sheet = "survey")
+  choices = read.xlsx(tool_path, sheet = "choices")
+  db <- read.csv(old_indicators_data_path)
+  dm <- read.csv(current_datamerge_path)
+  # rename some of column names
+  dm <- correct_header(dm)
+  
+  region_province <- read.csv(region_province_path, fileEncoding = "UTF-8-BOM")
+  
+  datamerge_name <- basename(current_datamerge_path)
+  last_date <- extract_date(datamerge_name) 
+  last_round <- extract_number(datamerge_name)  
+  
+  indicator_list <- read.xlsx(indicators_list_path, sheet = "required_indicatores")
+  indicator_vec <- paste0(indicator_list$var, "..value..")
+  pattern <- paste0("^(", paste(indicator_vec, collapse = "|"), ")")
+  
+  dm <- dm %>% 
+    filter(level != "afg_dist") %>% 
+    select(level, disaggregation, samplesize, matches(pattern))
+  
+  dm <- merge(dm, region_province, by.x = "disaggregation", by.y = "province_name", all.x = TRUE)
+  
+  cat("merging current data with old data ...", "\n")
+  dm <- dm %>% 
+    mutate(
+      round = last_round,
+      date = last_date,
+      level = case_when(
+        level == "No_disagregation" ~ "National",
+        level == "afg_region" ~ "Region",
+        level == "afg_prov" ~ "Province",
+        TRUE ~ level
+      ),
+      afg_region = case_when(
+        level == "Region" ~ disaggregation,
+        level == "Province" ~ region_name,
+        TRUE ~ NA_character_
+      ),
+      afg_prov = case_when(
+        level == "Province" ~ disaggregation,
+        TRUE ~ NA_character_
+      )
+    ) %>% 
+    ungroup() %>% 
+    select(round, date, level, afg_region, afg_prov, samplesize, everything(), -c(region_name, disaggregation))
+  
+  all_columns <- union(names(db), names(dm))
+  
+  db_vec <- sub("..value...*", "..value..", colnames(db))
+  db_vec <- unique(db_vec)
+  ref_col <- data.frame(root.col = db_vec, col.order = 1:length(db_vec))
+  
+  ref_col_full <- data.frame(col.name = all_columns) %>%
+    mutate(root.col = sub("..value...*", "..value..", col.name)) %>%
+    left_join(ref_col, by = c("root.col" = "root.col"))
+  
+  ref_col_full$col.order[is.na(ref_col_full$col.order)] <- length(db_vec) + 1
+  ref_col_full <- ref_col_full %>% arrange(col.order)
+  
+  db_filled <- db %>% mutate(across(everything(), ~ .x))
+  dm_filled <- dm %>% mutate(across(everything(), ~ .x))
+  
+  for (col in all_columns) {
+    if (!col %in% names(db_filled)) {
+      db_filled[[col]] <- NA
+    }
+    if (!col %in% names(dm_filled)) {
+      dm_filled[[col]] <- NA
+    }
+  }
+  
+  df_combined <- bind_rows(db_filled, dm_filled)
+  df_combined[is.na(df_combined)] <- NA
+  
+  df_combined <- df_combined %>% select(all_of(ref_col_full$col.name))
+  
+  # correcting date format
+  df_combined$date <- as.Date(df_combined$date, format = ifelse(grepl("/", df_combined$date), "%m/%d/%Y", "%Y-%m-%d"))
+  
+  write.csv(df_combined, output_csv_path, row.names = FALSE)
+  write.xlsx(df_combined, output_xlsx_path, row.names = FALSE, showNA = FALSE)
+  
+  df_indicators = read.csv(output_csv_path, na.strings = 'NA')
+  df_indicators = format_indicator_data(df_indicators, questions, choices)
+  cat("generating final longitudinal data ...", "\n")
+  split_by_level(df_indicators, formatted_output_path, "indicators")
+  cat("longitudinal indicators has been generated.", "\n")
 }

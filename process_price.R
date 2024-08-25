@@ -137,6 +137,9 @@ process_jmmi_prices <- function(tool_path){
   price_combined <- bind_rows(db_filled, price_filled)
   price_combined[is.na(price_combined)] <- NA
   
+  # correcting date format
+  price_combined$date <- as.Date(price_combined$date, format = ifelse(grepl("/", price_combined$date), "%m/%d/%Y", "%Y-%m-%d"))
+  
   # output
   write.csv(price_combined, "./output/csv/longitudinal_prices.csv", row.names = FALSE)
   write.xlsx(price_combined, "./output/xlsx/longitudinal_prices.xlsx", row.names = FALSE, showNA=FALSE)
