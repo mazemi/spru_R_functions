@@ -120,7 +120,29 @@ correct_header <- function(df) {
       "items_available_marketplace_water_container..value..dk",
       "items_available_marketplace_water_container..value..Limited_availability",
       "items_available_marketplace_water_container..value..Prefer_not_to_answer",
-      "items_available_marketplace_water_container..value..Widely_available"
+      "items_available_marketplace_water_container..value..Widely_available",
+      # winterization items
+      "items_available_marketplace_firewood..value..Completely_unavailable",
+      "items_available_marketplace_firewood..value..dk",
+      "items_available_marketplace_firewood..value..Limited_availability",
+      "items_available_marketplace_firewood..value..Prefer_not_to_answer",
+      "items_available_marketplace_firewood..value..Widely_available",
+      "items_available_marketplace_coal..value..Completely_unavailable",
+      "items_available_marketplace_coal..value..dk",
+      "items_available_marketplace_coal..value..Limited_availability",
+      "items_available_marketplace_coal..value..Prefer_not_to_answer",
+      "items_available_marketplace_coal..value..Widely_available",
+      "items_available_marketplace_blanket..value..Completely_unavailable",
+      "items_available_marketplace_blanket..value..dk",
+      "items_available_marketplace_blanket..value..Limited_availability",
+      "items_available_marketplace_blanket..value..Prefer_not_to_answer",
+      "items_available_marketplace_blanket..value..Widely_available",
+      "items_available_marketplace_winter_jacket..value..Completely_unavailable",
+      "items_available_marketplace_winter_jacket..value..dk",
+      "items_available_marketplace_winter_jacket..value..Limited_availability",
+      "items_available_marketplace_winter_jacket..value..Prefer_not_to_answer",
+      "items_available_marketplace_winter_jacket..value..Widely_available"
+ 
     ),
     NewName = c(
       "items_available_marketplace_wheat..value..completely_unavailable",
@@ -209,7 +231,28 @@ correct_header <- function(df) {
       "items_available_marketplace_water_container..value..dk",
       "items_available_marketplace_water_container..value..limited_availability",
       "items_available_marketplace_water_container..value..prefer_not_to_answer",
-      "items_available_marketplace_water_container..value..widely_available"
+      "items_available_marketplace_water_container..value..widely_available",
+      # winterization items
+      "items_available_marketplace_firewood..value..completely_unavailable",
+      "items_available_marketplace_firewood..value..dk",
+      "items_available_marketplace_firewood..value..limited_availability",
+      "items_available_marketplace_firewood..value..prefer_not_to_answer",
+      "items_available_marketplace_firewood..value..widely_available",
+      "items_available_marketplace_coal..value..completely_unavailable",
+      "items_available_marketplace_coal..value..dk",
+      "items_available_marketplace_coal..value..limited_availability",
+      "items_available_marketplace_coal..value..prefer_not_to_answer",
+      "items_available_marketplace_coal..value..widely_available",
+      "items_available_marketplace_blanket..value..completely_unavailable",
+      "items_available_marketplace_blanket..value..dk",
+      "items_available_marketplace_blanket..value..limited_availability",
+      "items_available_marketplace_blanket..value..prefer_not_to_answer",
+      "items_available_marketplace_blanket..value..widely_available",
+      "items_available_marketplace_winter_jacket..value..completely_unavailable",
+      "items_available_marketplace_winter_jacket..value..dk",
+      "items_available_marketplace_winter_jacket..value..limited_availability",
+      "items_available_marketplace_winter_jacket..value..prefer_not_to_answer",
+      "items_available_marketplace_winter_jacket..value..widely_available"
     )
   )
   
